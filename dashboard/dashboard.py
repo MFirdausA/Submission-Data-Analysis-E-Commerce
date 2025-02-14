@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import os
+from pathlib import Path  # <-- Tambahkan ini
 
 # Set page configuration
 st.set_page_config(page_title="Order Analysis Dashboard", layout="wide")
@@ -10,13 +10,14 @@ st.set_page_config(page_title="Order Analysis Dashboard", layout="wide")
 # Function to load data
 @st.cache_data
 def load_data():
-    data_path = '../data'
+    # Path absolut ke folder data
+    data_path = Path(__file__).parent.parent / "data"  # <-- Perubahan di sini
     
-    orders_df = pd.read_csv(os.path.join(data_path, 'orders_dataset.csv'))
-    customers_df = pd.read_csv(os.path.join(data_path, 'customers_dataset.csv'))
-    orders_items_df = pd.read_csv(os.path.join(data_path, 'order_items_dataset.csv'))
-    products_df = pd.read_csv(os.path.join(data_path, 'products_dataset.csv'))
-    product_category_name_translation_df = pd.read_csv(os.path.join(data_path, 'product_category_name_translation.csv'))
+    orders_df = pd.read_csv(data_path / 'orders_dataset.csv')
+    customers_df = pd.read_csv(data_path / 'customers_dataset.csv')
+    orders_items_df = pd.read_csv(data_path / 'order_items_dataset.csv')
+    products_df = pd.read_csv(data_path / 'products_dataset.csv')
+    product_category_name_translation_df = pd.read_csv(data_path / 'product_category_name_translation.csv')
     
     orders_df['order_purchase_timestamp'] = pd.to_datetime(orders_df['order_purchase_timestamp'])
     
@@ -118,8 +119,8 @@ try:
 except FileNotFoundError as e:
     st.error("""
         Error: Unable to load data files. Please check the following:
-        1. Make sure you are running the script from the 'dashboard' directory
-        2. Verify that all data files exist in the '../data' directory:
+        1. Make sure the 'data' folder exists in the root directory.
+        2. Verify that all data files exist in the 'data' directory:
            - orders_dataset.csv
            - customers_dataset.csv
            - order_items_dataset.csv
