@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
+import matplotlib.pyplot as plt
+import seaborn as sns
 import os
 
 # Set page configuration
@@ -40,30 +41,22 @@ try:
         recent_orders = orders_df[orders_df['order_purchase_timestamp'].dt.year == latest_year]
         orders_with_city = recent_orders.merge(customers_df, on='customer_id', how='left')
         top_cities_last_year = orders_with_city['customer_city'].value_counts().head(10)
+
+        # Create figure using Matplotlib
+        fig1, ax1 = plt.subplots(figsize=(8, 5))
+        sns.barplot(x=top_cities_last_year.index, y=top_cities_last_year.values, ax=ax1, color="lightblue")
         
-        # Create figure using graph_objects
-        fig1 = go.Figure(data=[
-            go.Bar(
-                x=top_cities_last_year.index,
-                y=top_cities_last_year.values,
-                marker_color='lightblue'
-            )
-        ])
+        ax1.set_title(f"Top 10 Cities by Order Count in {latest_year}")
+        ax1.set_xlabel("City")
+        ax1.set_ylabel("Number of Orders")
+        ax1.set_xticklabels(top_cities_last_year.index, rotation=45)
         
-        fig1.update_layout(
-            title=f"Top 10 Cities by Order Count in {latest_year}",
-            xaxis_title="City",
-            yaxis_title="Number of Orders",
-            xaxis_tickangle=-45,
-            height=500
-        )
-        
-        st.plotly_chart(fig1, use_container_width=True)
+        st.pyplot(fig1)
 
     with col2:
         st.header("Top Product Categories by City")
         
-        # Prepare data for category analysis - following your original analysis
+        # Prepare data for category analysis
         merged_df = orders_items_df.merge(products_df, on='product_id', how='left')
         merged_df = merged_df.merge(orders_df[['order_id', 'customer_id']], on='order_id', how='left')
         merged_df = merged_df.merge(customers_df[['customer_id', 'customer_city']], on='customer_id', how='left')
@@ -81,27 +74,16 @@ try:
         top_10_cities = top_category_per_city['customer_city'].head(10)
         top_10_data = top_category_per_city[top_category_per_city['customer_city'].isin(top_10_cities)]
 
-        # Create figure for categories
-        fig2 = go.Figure(data=[
-            go.Bar(
-                x=top_10_data['customer_city'],
-                y=top_10_data['total_orders'],
-                text=top_10_data['product_category_name_english'],
-                textposition='auto',
-                marker_color='lightblue'
-            )
-        ])
+        # Create figure using Matplotlib
+        fig2, ax2 = plt.subplots(figsize=(8, 5))
+        sns.barplot(x=top_10_data['customer_city'], y=top_10_data['total_orders'], hue=top_10_data['product_category_name_english'], dodge=False, ax=ax2)
         
-        fig2.update_layout(
-            title="Most Popular Product Category per City (Top 10)",
-            xaxis_title="City",
-            yaxis_title="Number of Orders",
-            xaxis_tickangle=-45,
-            height=500,
-            showlegend=False
-        )
+        ax2.set_title("Most Popular Product Category per City (Top 10)")
+        ax2.set_xlabel("City")
+        ax2.set_ylabel("Number of Orders")
+        ax2.set_xticklabels(top_10_data['customer_city'], rotation=45)
         
-        st.plotly_chart(fig2, use_container_width=True)
+        st.pyplot(fig2)
 
     # Add metrics
     st.header("Key Metrics")
